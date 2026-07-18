@@ -1,7 +1,6 @@
 """PetBNB: a grounded, Thane-only pet-place recommender."""
 import json
 import os
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -57,12 +56,6 @@ def build_map_url(place: dict[str, Any]) -> str:
     return f"https://www.google.com/maps/search/?api=1&query={quote_plus(query)}"
 
 
-def evidence_url(place: dict[str, Any]) -> str | None:
-    """Extract the public evidence URL already stored in the seed record notes."""
-    match = re.search(r"https?://[^\s]+", place.get("notes", ""))
-    return match.group(0).rstrip(".,)") if match else None
-
-
 def validate_recommendation_payload(payload: dict[str, Any], candidates: list[dict[str, Any]]) -> tuple[list[dict[str, str]], str]:
     """Only permit model results whose IDs occur in the supplied candidate list."""
     allowed_ids = {place["id"] for place in candidates}
@@ -115,7 +108,6 @@ def run_self_test() -> None:
     assert load_breeds("dog")[:2] == ["Indie/Mixed", "Other"]
     assert load_breeds("cat")[0] == "Indian domestic (cat)"
     assert build_map_url(places[0]).startswith("https://www.google.com/maps/search/")
-    assert evidence_url(places[0])
     cases = [
         ("anxious dog / cafe", ["cafe"], "TH006", "The dataset supports outdoor non-AC seating for this cafe."),
         ("senior cat / vet", ["vet"], "TH018", "The record lists consultation and veterinary services."),
@@ -161,21 +153,19 @@ def display_recommendations(recommendations: list[dict[str, str]], candidates: l
         place = by_id[recommendation["id"]]
         with st.container(border=True):
             title, badge = st.columns([6, 1])
-            title.subheader(place["name"])
+            title.subheader(place["name"], anchor=False)
             badge.caption(place["category"].title())
             if place.get("confidence") == "low":
                 st.warning("Low confidence: verify current details with the provider before visiting.", icon="⚠️")
             st.write(f"**Address:** {place.get('address') or 'Address not verified'}")
             st.write(f"**Area:** {place.get('area') or 'Not verified'}")
             st.write(recommendation["explanation"])
-            directions, website, source = st.columns(3)
+            directions, website = st.columns(2)
             directions.link_button("Directions", build_map_url(place), use_container_width=True)
             if place.get("website"):
                 website.link_button("Website", place["website"], use_container_width=True)
             else:
                 website.caption("Website not verified")
-            if source_url := evidence_url(place):
-                source.link_button("Evidence", source_url, use_container_width=True)
 
 
 st.title("🐾 PetBNB Thane")
