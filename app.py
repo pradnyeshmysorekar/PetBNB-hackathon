@@ -13,6 +13,8 @@ load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 MODEL = "gpt-5.6-luna"
 DATA_PATH = Path(__file__).parent / "data" / "thane_places.json"
+DOG_BREEDS_PATH = Path(__file__).parent / "data" / "dog_breeds.json"
+CAT_BREEDS_PATH = Path(__file__).parent / "data" / "cat_breeds.json"
 VALID_CATEGORIES = {"cafe", "park", "vet", "groomer", "boarding"}
 
 
@@ -29,6 +31,21 @@ def load_places() -> list[dict[str, Any]]:
 
 def filter_places(places: list[dict[str, Any]], needs: list[str]) -> list[dict[str, Any]]:
     return [place for place in places if place["category"] in set(needs)]
+
+
+def load_breeds(pet_type: str) -> list[str]:
+    """Load development-generated breed data; this never makes a network call."""
+    if pet_type == "dog":
+        path, additions = DOG_BREEDS_PATH, ["Indie/Mixed", "Other"]
+    elif pet_type == "cat":
+        path, additions = CAT_BREEDS_PATH, ["Indian domestic (cat)"]
+    else:
+        raise ValueError(f"Unsupported pet type: {pet_type}")
+    with path.open(encoding="utf-8") as source:
+        breeds = json.load(source)
+    if not isinstance(breeds, list) or not all(isinstance(breed, str) for breed in breeds):
+        raise ValueError(f"{path.name} must contain a JSON list of breed names.")
+    return additions + [breed for breed in breeds if breed not in additions]
 
 
 def validate_recommendation_payload(payload: dict[str, Any], candidates: list[dict[str, Any]]) -> tuple[list[dict[str, str]], str]:
@@ -80,6 +97,8 @@ def call_recommender(profile: dict[str, Any], candidates: list[dict[str, Any]]) 
 def run_self_test() -> None:
     """Offline test: tests grounding validation without an API call or key."""
     places = load_places()
+    assert load_breeds("dog")[:2] == ["Indie/Mixed", "Other"]
+    assert load_breeds("cat")[0] == "Indian domestic (cat)"
     cases = [
         ("anxious dog / cafe", ["cafe"], "TH006", "The dataset supports outdoor non-AC seating for this cafe."),
         ("senior cat / vet", ["vet"], "TH018", "The record lists consultation and veterinary services."),
@@ -111,6 +130,11 @@ def get_cached_places() -> list[dict[str, Any]]:
     return load_places()
 
 
+@st.cache_data
+def get_cached_breeds(pet_type: str) -> list[str]:
+    return load_breeds(pet_type)
+
+
 def display_recommendations(recommendations: list[dict[str, str]], candidates: list[dict[str, Any]], no_fit_reason: str) -> None:
     if not recommendations:
         st.info(no_fit_reason or "No supported matches found for this profile.")
@@ -137,7 +161,7 @@ with st.form("pet_profile"):
     left, right = st.columns(2)
     with left:
         pet_type = st.selectbox("Pet type", ["dog", "cat"])
-        size = st.selectbox("Breed or size", ["small", "medium", "large"])
+        breed = st.selectbox("Breed", get_cached_breeds(pet_type))
         age = st.selectbox("Age", ["puppy", "adult", "senior"])
     with right:
         temperament = st.multiselect("Temperament", ["anxious", "high-energy", "calm", "social", "reactive"])
@@ -150,7 +174,7 @@ if submitted:
     else:
         # The selected subset is persisted; the API is reached only in this submit branch.
         st.session_state["filtered_candidates"] = filter_places(places, needs)
-        st.session_state["last_profile"] = {"pet_type": pet_type, "size": size, "age": age, "temperament": temperament, "needs": needs}
+        st.session_state["last_profile"] = {"pet_type": pet_type, "breed": breed, "age": age, "temperament": temperament, "needs": needs}
         if not st.session_state["filtered_candidates"]:
             st.info("No places in the local dataset match those categories yet.")
         else:
