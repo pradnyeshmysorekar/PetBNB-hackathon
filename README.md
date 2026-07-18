@@ -39,6 +39,9 @@ Codex was used to:
 - Scaffold the recommendation pipeline, including the grounding/validation logic that 
   prevents the model from recommending places outside the verified dataset.
 - Debug environment configuration (`.env` loading, dependency resolution) during local setup.
+- Built a one-time build script (`scripts/fetch_breeds.py`) to pull standard dog/cat breed 
+  lists from TheDogAPI/TheCatAPI, stored as static local data — avoids inventing an arbitrary 
+  breed list and keeps the app itself free of runtime network dependencies.
 
 Primary build thread `/feedback` Session ID: `[ADD YOUR SESSION ID HERE]`
 
