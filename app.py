@@ -1,9 +1,11 @@
 """PetBNB: a grounded, Thane-only pet-place recommender."""
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
@@ -46,6 +48,19 @@ def load_breeds(pet_type: str) -> list[str]:
     if not isinstance(breeds, list) or not all(isinstance(breed, str) for breed in breeds):
         raise ValueError(f"{path.name} must contain a JSON list of breed names.")
     return additions + [breed for breed in breeds if breed not in additions]
+
+
+def build_map_url(place: dict[str, Any]) -> str:
+    """Create a no-key Google Maps search URL from locally stored place data."""
+    location = place.get("address") or place.get("area") or "Thane"
+    query = ", ".join([place["name"], location, "Thane, Maharashtra, India"])
+    return f"https://www.google.com/maps/search/?api=1&query={quote_plus(query)}"
+
+
+def evidence_url(place: dict[str, Any]) -> str | None:
+    """Extract the public evidence URL already stored in the seed record notes."""
+    match = re.search(r"https?://[^\s]+", place.get("notes", ""))
+    return match.group(0).rstrip(".,)") if match else None
 
 
 def validate_recommendation_payload(payload: dict[str, Any], candidates: list[dict[str, Any]]) -> tuple[list[dict[str, str]], str]:
@@ -99,6 +114,8 @@ def run_self_test() -> None:
     places = load_places()
     assert load_breeds("dog")[:2] == ["Indie/Mixed", "Other"]
     assert load_breeds("cat")[0] == "Indian domestic (cat)"
+    assert build_map_url(places[0]).startswith("https://www.google.com/maps/search/")
+    assert evidence_url(places[0])
     cases = [
         ("anxious dog / cafe", ["cafe"], "TH006", "The dataset supports outdoor non-AC seating for this cafe."),
         ("senior cat / vet", ["vet"], "TH018", "The record lists consultation and veterinary services."),
@@ -151,6 +168,14 @@ def display_recommendations(recommendations: list[dict[str, str]], candidates: l
             st.write(f"**Address:** {place.get('address') or 'Address not verified'}")
             st.write(f"**Area:** {place.get('area') or 'Not verified'}")
             st.write(recommendation["explanation"])
+            directions, website, source = st.columns(3)
+            directions.link_button("Directions", build_map_url(place), use_container_width=True)
+            if place.get("website"):
+                website.link_button("Website", place["website"], use_container_width=True)
+            else:
+                website.caption("Website not verified")
+            if source_url := evidence_url(place):
+                source.link_button("Evidence", source_url, use_container_width=True)
 
 
 st.title("🐾 PetBNB Thane")

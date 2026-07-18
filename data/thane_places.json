@@ -349,6 +349,7 @@
     "pet_policy": "",
     "good_for": ["boarding", "day care", "grooming", "dog swimming"],
     "notes": "Official site describes a Thane boarding, day-care, grooming and swimming facility: https://woofngoof.com/",
+    "website": "https://woofngoof.com/",
     "confidence": "high"
   },
   {
@@ -360,6 +361,7 @@
     "pet_policy": "",
     "good_for": ["dog boarding", "day care", "training"],
     "notes": "Official site describes boarding, day care and training at this address: https://www.smartcanines.in/",
+    "website": "https://www.smartcanines.in/",
     "confidence": "high"
   },
   {
@@ -371,6 +373,7 @@
     "pet_policy": "",
     "good_for": ["boarding", "day care", "grooming"],
     "notes": "Official site lists the Thane address and boarding/day-care/grooming services: https://petshotel.in/",
+    "website": "https://petshotel.in/",
     "confidence": "high"
   },
   {
@@ -382,6 +385,7 @@
     "pet_policy": "",
     "good_for": ["pet boarding", "pet grooming", "pet swimming"],
     "notes": "Official site lists this address and boarding services: https://petwags.in/",
+    "website": "https://petwags.in/",
     "confidence": "high"
   },
   {
@@ -393,6 +397,7 @@
     "pet_policy": "",
     "good_for": ["dog boarding"],
     "notes": "Provider publicly advertises dog boarding for Thane; exact facility address requires verification: https://oscarpetsworld.in/affordable-dog-boarding-service.html",
+    "website": "https://oscarpetsworld.in/",
     "confidence": "low"
   },
   {
@@ -404,6 +409,7 @@
     "pet_policy": "",
     "good_for": ["dog boarding", "day care"],
     "notes": "Provider publicly advertises dog boarding in Thane; exact facility address requires verification: https://www.mrnmrspet.com/dog-hostel-in-thane",
+    "website": "https://www.mrnmrspet.com/",
     "confidence": "low"
   },
   {
@@ -415,6 +421,7 @@
     "pet_policy": "",
     "good_for": ["dog boarding", "day care", "grooming", "dog park"],
     "notes": "Official site lists this Thane-district address and services: https://gravitypetshome.com/",
+    "website": "https://gravitypetshome.com/",
     "confidence": "high"
   },
   {
